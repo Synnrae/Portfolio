@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>my portfolio</title>
+<title>Synnrae — Portfolio</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = { theme: { extend: { colors: { accent: '#6EE7B7', accent2:'#7c5cff', glass:'rgba(255,255,255,0.06)' } } } }
@@ -37,14 +37,14 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;background-image:radial
 <a href="#projects" class="text-sm px-3 py-2 rounded-md hover:bg-white/5">Projects</a>
 <a href="#skills" class="text-sm px-3 py-2 rounded-md hover:bg-white/5">Skills</a>
 <a href="#activity" class="text-sm px-3 py-2 rounded-md hover:bg-white/5">Activity</a>
-<a id="githubLink" class="text-sm px-4 py-2 bg-gradient-to-r from-accent to-accent2 text-black rounded-md font-semibold" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> GitHub</a>
+<a id="githubLink" href="https://github.com/synnrae" target="_blank" class="text-sm px-4 py-2 bg-gradient-to-r from-accent to-accent2 text-black rounded-md font-semibold"><i class="fab fa-github"></i> GitHub</a>
 </nav>
 </header>
 
 <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center mb-12">
 <div class="lg:col-span-2">
 <h1 class="text-5xl lg:text-6xl font-extrabold leading-tight">Hey — I'm <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent2">Synnrae</span>.</h1>
-<p class="mt-4 text-slate-300 max-w-2xl">I make mostly frontend projects, but i also can make backends, i perfer not to because my lazy ass will take 2 weeks to do it, another way of saying Im a busy person.</p>
+<p class="mt-4 text-slate-300 max-w-2xl">I mostly make frontend projects but can do backends too. Lazy sometimes. Busy always.</p>
 <div class="mt-6 flex gap-3 items-center">
 <button id="refreshBtn" class="px-3 py-2 rounded-md bg-white/5 hover:bg-white/10">Refresh data</button>
 </div>
@@ -54,82 +54,131 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;background-image:radial
 
 <section id="projects" class="mb-16">
 <div class="flex items-center justify-between mb-6">
-<h2 class="text-3xl font-bold">my Projects</h2>
-<div class="text-sm text-slate-400"> auto detected from GitHub</div>
+<h2 class="text-3xl font-bold">Projects</h2>
+<div class="text-sm text-slate-400">Hardcoded for GitHub Pages</div>
 </div>
 <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 </section>
 
 <section id="skills" class="mb-16">
-<h2 class="text-3xl font-bold mb-6"> my shit Skills</h2>
+<h2 class="text-3xl font-bold mb-6">Skills</h2>
 <div id="skillsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 </section>
 
 <section id="activity" class="mb-16">
-<h2 class="text-3xl font-bold mb-6"> my GitHub Activity</h2>
+<h2 class="text-3xl font-bold mb-6">GitHub Activity</h2>
 <div id="activityGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 </section>
 
 <footer class="py-8 text-sm text-slate-400 text-center">© <span id="year">2025</span> Synnrae — the legend(cap)</footer>
 </div>
 
- 
 <script>
+document.getElementById('year').textContent = new Date().getFullYear();
 
-  // my very god skills lmao, took a bit with ob cuz i didn't want skidders here
-const GITHUB_USER='synnrae', REFRESH_COOLDOWN_MS=2000, MAX_LANGS=6;
-const projectsGrid=document.getElementById('projectsGrid'), skillsGrid=document.getElementById('skillsGrid'),
-statsEl=document.getElementById('stats'), activityGrid=document.getElementById('activityGrid'),
-githubLink=document.getElementById('githubLink'), refreshBtn=document.getElementById('refreshBtn');
-document.getElementById('year').textContent=new Date().getFullYear();
-
+// Escape HTML
 function escapeHtml(str){return String(str??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');}
-function unb64(s){try{return atob(s);}catch{return s;}}
 
-function renderSkills(skills){skillsGrid.innerHTML='';if(!skills||skills.length===0){skillsGrid.innerHTML='<div class="col-span-full text-slate-400">No language data.</div>';return;}
-const maxVal=Math.max(...skills.map(s=>s.value));skills.forEach((s,idx)=>{const width=Math.round(s.value/maxVal*100);const card=document.createElement('div');
-card.className='glass-blur p-6 rounded-2xl flex flex-col items-start hover:scale-[1.02] transition-transform fade-in';
-card.style.animationDelay=`${idx*0.12}s`;card.innerHTML=`<div class="text-slate-300 text-sm">${escapeHtml(s.name)}</div><div class="mt-4 text-2xl font-bold text-white">${s.display}<span class="text-sm text-slate-400"> pts</span></div><div class="mt-3 w-full bg-white/5 rounded-full h-2 overflow-hidden"><div class="skill-bar bg-gradient-to-r from-accent to-accent2" style="width:${width}%"></div></div>`;skillsGrid.appendChild(card);});}
+// Hardcoded data
+const hardcodedRepos = [
+  { name: "Portfolio", description: "My personal portfolio site", html_url: "https://github.com/synnrae/portfolio", language: "html", stargazers_count: 1, forks_count: 0, topics:["frontend"] }
+];
 
-function renderProjects(repos){projectsGrid.innerHTML='';if(!Array.isArray(repos)||repos.length===0){projectsGrid.innerHTML='<div class="col-span-full text-slate-400 py-8">No projects to show.</div>';return;}
-repos.slice(0,12).forEach((repo,idx)=>{const imgUrl=`https://opengraph.githubassets.com/1/${GITHUB_USER}/${repo.name}`;const card=document.createElement('div');
-card.className='block rounded-2xl overflow-hidden shadow-lg glass-blur hover:scale-[1.02] transition-transform fade-in';
-card.style.animationDelay=`${idx*0.08}s`;card.innerHTML=`<div class="card-media" style="background-image:url('${imgUrl}');"></div><div class="p-5"><h3 class="text-lg font-semibold text-white mb-2">${escapeHtml(repo.name)}</h3><p class="text-slate-300 text-sm mb-4">${escapeHtml(repo.description||'')}</p><div class="flex flex-wrap gap-2 mb-4">${(repo.topics&&repo.topics.length)?repo.topics.map(t=>`<span class="chip inline-flex items-center rounded-full px-3 py-1 bg-white/5 text-xs text-slate-200">${escapeHtml(t)}</span>`).join(''):(repo.language?`<span class="chip inline-flex items-center rounded-full px-3 py-1 bg-white/5 text-xs text-slate-200">${escapeHtml(repo.language)}</span>`:'')}</div><div class="flex items-center justify-between text-xs text-slate-400"><div class="flex items-center gap-4"><div class="inline-flex items-center gap-2"><i class="fa fa-star text-yellow-400"></i> ${repo.stargazers_count||0}</div><div class="inline-flex items-center gap-2"><i class="fa fa-code-branch"></i> ${repo.forks_count||0}</div></div><div class="flex items-center gap-3"><a href="${repo.html_url}" target="_blank" class="px-2 py-1 rounded-md bg-white/5 text-xs">View</a></div></div></div>`;projectsGrid.appendChild(card);});}
+const hardcodedSkills = [
+  { name: "Html", value: 100000, display: "100k" }
+];
 
-function renderActivity(events){activityGrid.innerHTML='';if(!Array.isArray(events)||events.length===0){activityGrid.innerHTML='<div class="col-span-full text-slate-400 py-8">No recent activity.</div>';return;}
-events.slice(0,9).forEach((ev,idx)=>{const card=document.createElement('div');card.className='glass-blur p-6 rounded-2xl fade-in';card.style.animationDelay=`${idx*0.08}s`;let html='';
-if(ev.type==='PushEvent'){const repoName=ev.repo.name;const commitCount=(ev.payload&&ev.payload.commits&&ev.payload.commits.length)?ev.payload.commits.length:1;html=`<div class="font-semibold text-white mb-2">Pushed ${commitCount} commit${commitCount>1?'s':''}</div><div class="text-sm text-slate-300">to <a href="https://github.com/${repoName}" target="_blank" class="text-accent underline">${repoName}</a></div>`;}
-else if(ev.type==='CreateEvent'){html=`<div class="font-semibold text-white mb-2">Created ${escapeHtml(ev.payload?.ref_type||'repo')}</div><div class="text-sm text-slate-300"><a href="https://github.com/${ev.repo?.name}" target="_blank" class="text-accent underline">${escapeHtml(ev.repo?.name||'')}</a></div>`;}
-else if(ev.type==='WatchEvent'){html=`<div class="font-semibold text-white mb-2">Starred a repo</div><div class="text-sm text-slate-300"><a href="https://github.com/${ev.repo?.name}" target="_blank" class="text-accent underline">${escapeHtml(ev.repo?.name||'')}</a></div>`;}
-else{html=`<div class="text-sm text-slate-300">${escapeHtml(ev.type)} on <a href="https://github.com/${ev.repo?.name}" target="_blank" class="text-accent underline">${escapeHtml(ev.repo?.name||'repo')}</a></div>`;}
-card.innerHTML=html;activityGrid.appendChild(card);});}
+const hardcodedActivity = [
+  { type: "PushEvent", repo:{ name:"synnrae/Portfolio"}, payload:{ commits:[{}] } }
+ ];
 
-async function safeJson(res){const txt=await res.text();try{return JSON.parse(txt);}catch{return {};}}
-
-async function fetchGitHubData(){projectsGrid.innerHTML='<div class="col-span-full text-center text-slate-400 py-8">Loading projects…</div>';statsEl.innerHTML='';activityGrid.innerHTML='';githubLink.href=`https://github.com/${GITHUB_USER}`;
-try{const [reposRes,userRes,eventsRes]=await Promise.all([fetch(`https://api.github.com/users/${GITHUB_USER}/repos?per_page=100`),fetch(`https://api.github.com/users/${GITHUB_USER}`),fetch(`https://api.github.com/users/${GITHUB_USER}/events/public`)]);
-if(!reposRes.ok){const err=await safeJson(reposRes);throw new Error(err.message||'Failed to fetch repos');}
-const repos=await safeJson(reposRes);const user=userRes.ok?await safeJson(userRes):null;const events=eventsRes.ok?await safeJson(eventsRes):[];
-const filtered=repos.filter(r=>!r.fork).sort((a,b)=>(b.stargazers_count||0)-(a.stargazers_count||0));const totalStars=filtered.reduce((acc,r)=>acc+(r.stargazers_count||0),0);
-statsEl.innerHTML=`<div class="flex items-center gap-4"><div class="text-sm text-slate-400">Repos</div><div class="font-semibold">${filtered.length}</div></div><div class="flex items-center gap-4"><div class="text-sm text-slate-400">Stars</div><div class="font-semibold">${totalStars}</div></div><div class="flex items-center gap-4"><div class="text-sm text-slate-400">Followers</div><div class="font-semibold">${user?user.followers:'—'}</div></div>`;
-renderProjects(filtered);
-
-// this is what coding languages i use on projects
-const langTotals={};const queue=filtered.slice(0,60);let i=0;const concurrency=6;const workers=new Array(concurrency).fill(null).map(async()=>{while(i<queue.length){const repo=queue[i++];try{const lr=await fetch(repo.languages_url);if(!lr.ok)continue;const langObj=await safeJson(lr);Object.entries(langObj).forEach(([ln,bytes])=>{langTotals[ln]=(langTotals[ln]||0)+(bytes||0);});}catch{}}});await Promise.all(workers);
-const langEntries=Object.entries(langTotals).sort((a,b)=>b[1]-a[1]).slice(0,MAX_LANGS);const skills=langEntries.map(([name,bytes])=>({name,value:bytes,display:Math.round(bytes/1000).toLocaleString()}));renderSkills(skills);
-renderActivity(events);}catch(err){console.error(err);projectsGrid.innerHTML=`<div class="col-span-full text-center text-red-400 py-8">Could not load GitHub data — ${escapeHtml(err.message)}</div>`;activityGrid.innerHTML=`<div class="col-span-full text-center text-red-400 py-8">Could not load GitHub activity</div>`;}
-
+// Render functions
+function renderSkills(skills){
+  skillsGrid.innerHTML='';
+  const maxVal = Math.max(...skills.map(s=>s.value));
+  skills.forEach((s,idx)=>{
+    const width = Math.round(s.value/maxVal*100);
+    const card = document.createElement('div');
+    card.className='glass-blur p-6 rounded-2xl flex flex-col items-start hover:scale-[1.02] transition-transform fade-in';
+    card.style.animationDelay = `${idx*0.12}s`;
+    card.innerHTML = `<div class="text-slate-300 text-sm">${escapeHtml(s.name)}</div>
+      <div class="mt-4 text-2xl font-bold text-white">${s.display}<span class="text-sm text-slate-400"> pts</span></div>
+      <div class="mt-3 w-full bg-white/5 rounded-full h-2 overflow-hidden">
+        <div class="skill-bar bg-gradient-to-r from-accent to-accent2" style="width:${width}%"></div>
+      </div>`;
+    skillsGrid.appendChild(card);
+  });
 }
 
-// this is the antiskid cuz ian fw skidders
-(function(){let last=0;refreshBtn.addEventListener('click',()=>{const now=Date.now();if(now-last<REFRESH_COOLDOWN_MS){refreshBtn.classList.add('opacity-60');setTimeout(()=>refreshBtn.classList.remove('opacity-60'),500);return;}last=now;fetchGitHubData();});
-document.addEventListener('contextmenu',e=>e.preventDefault());document.addEventListener('selectstart',e=>e.preventDefault());document.addEventListener('dragstart',e=>e.preventDefault());
-document.addEventListener('keydown',e=>{const key=e.key?.toLowerCase();if(e.ctrlKey&&['c','s','u','p','shift'].includes(key)){e.preventDefault();flashNotice('Copying disabled');}if(e.key==='F12'){e.preventDefault();flashNotice('Devtools disabled');}});
-function flashNotice(msg){const div=document.createElement('div');div.textContent=msg;div.className='fixed bottom-6 right-6 bg-slate-800 text-white px-4 py-2 rounded shadow';document.body.appendChild(div);setTimeout(()=>div.remove(),1200);}
-const originalFetch=window.fetch,const originalConsoleLog=console.log;setInterval(()=>{if(window.fetch!==originalFetch||console.log!==originalConsoleLog){try{console.log=originalConsoleLog;}catch{}location.reload();}},1500);
-try{githubLink.innerHTML=`<i class="fab fa-github"></i> ${escapeHtml(unb64('R2l0SHVi'))}`;}catch{};})();
+function renderProjects(repos){
+  projectsGrid.innerHTML='';
+  repos.forEach((repo,idx)=>{
+    const imgUrl = `https://opengraph.githubassets.com/1/synnrae/${repo.name}`;
+    const card = document.createElement('div');
+    card.className='block rounded-2xl overflow-hidden shadow-lg glass-blur hover:scale-[1.02] transition-transform fade-in';
+    card.style.animationDelay=`${idx*0.08}s`;
+    card.innerHTML = `<div class="card-media" style="background-image:url('${imgUrl}');"></div>
+      <div class="p-5">
+        <h3 class="text-lg font-semibold text-white mb-2">${escapeHtml(repo.name)}</h3>
+        <p class="text-slate-300 text-sm mb-4">${escapeHtml(repo.description||'')}</p>
+        <div class="flex flex-wrap gap-2 mb-4">${(repo.topics&&repo.topics.length)?repo.topics.map(t=>`<span class="chip inline-flex items-center rounded-full px-3 py-1 bg-white/5 text-xs text-slate-200">${escapeHtml(t)}</span>`).join(''):'<span class="chip inline-flex items-center rounded-full px-3 py-1 bg-white/5 text-xs text-slate-200">'+escapeHtml(repo.language)+'</span>'}</div>
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <div class="flex items-center gap-4">
+            <div class="inline-flex items-center gap-2"><i class="fa fa-star text-yellow-400"></i> ${repo.stargazers_count||0}</div>
+            <div class="inline-flex items-center gap-2"><i class="fa fa-code-branch"></i> ${repo.forks_count||0}</div>
+          </div>
+          <div class="flex items-center gap-3">
+            <a href="${repo.html_url}" target="_blank" class="px-2 py-1 rounded-md bg-white/5 text-xs">View</a>
+          </div>
+        </div>
+      </div>`;
+    projectsGrid.appendChild(card);
+  });
+}
 
-fetchGitHubData();
+function renderActivity(events){
+  activityGrid.innerHTML='';
+  events.forEach((ev,idx)=>{
+    const card = document.createElement('div');
+    card.className='glass-blur p-6 rounded-2xl fade-in';
+    card.style.animationDelay=`${idx*0.08}s`;
+    let html='';
+    if(ev.type==='PushEvent'){
+      const repoName = ev.repo.name;
+      const commitCount = (ev.payload?.commits?.length)||1;
+      html=`<div class="font-semibold text-white mb-2">Pushed ${commitCount} commit${commitCount>1?'s':''}</div>
+      <div class="text-sm text-slate-300">to <a href="https://github.com/${repoName}" target="_blank" class="text-accent underline">${repoName}</a></div>`;
+    } else if(ev.type==='CreateEvent'){
+      html=`<div class="font-semibold text-white mb-2">Created ${escapeHtml(ev.payload?.ref_type||'repo')}</div>
+      <div class="text-sm text-slate-300"><a href="https://github.com/${ev.repo?.name}" target="_blank" class="text-accent underline">${escapeHtml(ev.repo?.name||'')}</a></div>`;
+    } else if(ev.type==='WatchEvent'){
+      html=`<div class="font-semibold text-white mb-2">Starred a repo</div>
+      <div class="text-sm text-slate-300"><a href="https://github.com/${ev.repo?.name}" target="_blank" class="text-accent underline">${escapeHtml(ev.repo?.name||'')}</a></div>`;
+    } else{
+      html=`<div class="text-sm text-slate-300">${escapeHtml(ev.type)} on <a href="https://github.com/${ev.repo?.name}" target="_blank" class="text-accent underline">${escapeHtml(ev.repo?.name||'repo')}</a></div>`;
+    }
+    card.innerHTML = html;
+    activityGrid.appendChild(card);
+  });
+}
+
+// Render stats cuz it needs to cuz then i can't flex
+function renderStats(){
+  const totalStars = hardcodedRepos.reduce((a,b)=>a+(b.stargazers_count||0),0);
+  statsEl.innerHTML=`<div class="flex items-center gap-4"><div class="text-sm text-slate-400">Repos</div><div class="font-semibold">${hardcodedRepos.length}</div></div>
+  <div class="flex items-center gap-4"><div class="text-sm text-slate-400">Stars</div><div class="font-semibold">${totalStars}</div></div>
+  <div class="flex items-center gap-4"><div class="text-sm text-slate-400">Followers</div><div class="font-semibold">—</div></div>`;
+}
+
+function initPortfolio(){
+  renderStats();
+  renderProjects(hardcodedRepos);
+  renderSkills(hardcodedSkills);
+  renderActivity(hardcodedActivity);
+}
+
+refreshBtn.addEventListener('click',()=>{initPortfolio();});
+initPortfolio();
 </script>
 </body>
 </html>
