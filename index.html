@@ -92,7 +92,6 @@ document.getElementById('year').textContent=new Date().getFullYear();
 
 function escapeHtml(str){return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');}
 
-// Proportional skill bars
 function renderSkills(skills){
   skillsGrid.innerHTML='';
   if(skills.length===0) return;
@@ -123,12 +122,16 @@ async function fetchGitHub(){
       fetch(`https://api.github.com/users/${GITHUB_USER}`),
       fetch(`https://api.github.com/users/${GITHUB_USER}/events/public`)
     ]);
-    const repos=await reposRes.json();
-    const user=userRes.ok?await userRes.json():null;
-    const events=eventsRes.ok?await eventsRes.json():[];
 
-    const filteredRepos=repos.filter(r=>!r.fork).sort((a,b)=>b.stargazers_count-b.stargazers_count);
-    const totalStars=filteredRepos.reduce((s,r)=>s+(r.stargazers_count||0),0);
+    const repos = await reposRes.json();
+    if(!Array.isArray(repos)) throw new Error(repos.message || 'Invalid GitHub response');
+
+    const user = userRes.ok ? await userRes.json() : null;
+    const events = eventsRes.ok ? await eventsRes.json() : [];
+
+    const filteredRepos = repos.filter(r => !r.fork).sort((a,b) => (b.stargazers_count||0) - (a.stargazers_count||0));
+    const totalStars = filteredRepos.reduce((s,r) => s+(r.stargazers_count||0),0);
+
     statsEl.innerHTML=`<div class="flex items-center gap-4"><div class="text-sm text-slate-400">Repos</div><div class="font-semibold">${filteredRepos.length}</div></div>
       <div class="flex items-center gap-4"><div class="text-sm text-slate-400">Stars</div><div class="font-semibold">${totalStars}</div></div>
       <div class="flex items-center gap-4"><div class="text-sm text-slate-400">Followers</div><div class="font-semibold">${user?user.followers:'—'}</div></div>`;
@@ -160,17 +163,17 @@ async function fetchGitHub(){
       projectsGrid.appendChild(card);
     });
 
-    // Skills: proportional by lines of code
+    // Skills
     const langTotals={};
     for(const repo of filteredRepos){
       if(!repo.language) continue;
       try{
-        const langRes=await fetch(repo.languages_url);
-        const langs=await langRes.json();
+        const langRes = await fetch(repo.languages_url);
+        const langs = await langRes.json();
         for(const [l,c] of Object.entries(langs)) langTotals[l]=(langTotals[l]||0)+c;
       }catch{}
     }
-    const sortedLangs=Object.entries(langTotals).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([name,count])=>({name,hours:count}));
+    const sortedLangs = Object.entries(langTotals).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([name,count])=>({name,hours:count}));
     renderSkills(sortedLangs);
 
     // Activity
