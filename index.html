@@ -94,12 +94,7 @@
     <!-- Achievements -->
     <section id="achievements" class="mb-16">
       <h2 class="text-3xl font-bold mb-6">Achievements</h2>
-      <ul class="list-disc pl-5 text-slate-300 space-y-2">
-        <li>GitHub Star Contributor</li>
-        <li>Built 5+ experimental web games</li>
-        <li>Published NPM packages</li>
-        <li>Open-source contributor to popular libraries</li>
-      </ul>
+      <div id="achievementsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
     </section>
 
     <!-- Contact -->
@@ -118,27 +113,19 @@
     const projectsGrid = document.getElementById('projectsGrid');
     const skillsGrid = document.getElementById('skillsGrid');
     const statsEl = document.getElementById('stats');
+    const achievementsGrid = document.getElementById('achievementsGrid');
     const githubLink = document.getElementById('githubLink');
     const refreshBtn = document.getElementById('refreshBtn');
 
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    const SKILLS = [
-      { name: 'JavaScript', hours: 1200 },
-      { name: 'TypeScript', hours: 700 },
-      { name: 'React', hours: 900 },
-      { name: 'Three.js', hours: 300 },
-      { name: 'Node.js', hours: 650 },
-      { name: 'Python', hours: 800 },
-      { name: 'Tailwind CSS', hours: 500 },
-      { name: 'Git & GitHub', hours: 400 },
-      { name: 'HTML & CSS', hours: 1000 },
-      { name: 'Next.js', hours: 350 }
-    ];
+    function escapeHtml(str){
+      return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+    }
 
-    function renderSkills(){
+    function renderSkills(skills){
       skillsGrid.innerHTML = '';
-      SKILLS.forEach(s => {
+      skills.forEach(s => {
         const card = document.createElement('div');
         card.className = 'glass-blur p-6 rounded-2xl flex flex-col items-start hover:scale-[1.02] transition-transform';
         card.innerHTML = `
@@ -155,40 +142,49 @@
     async function fetchGitHub(){
       projectsGrid.innerHTML = '<div class="col-span-full text-center text-slate-400 py-8">Loading projects…</div>';
       statsEl.innerHTML = '';
+      achievementsGrid.innerHTML = '';
       githubLink.href = `https://github.com/${GITHUB_USER}`;
 
-      try{
-        const reposRes = await fetch(`https://api.github.com/users/${GITHUB_USER}/repos?per_page=100`);
-        if(!reposRes.ok) throw new Error('GitHub API error: ' + reposRes.status);
-        const repos = await reposRes.json();
+      try {
+        const [reposRes, userRes] = await Promise.all([
+          fetch(`https://api.github.com/users/${GITHUB_USER}/repos?per_page=100`),
+          fetch(`https://api.github.com/users/${GITHUB_USER}`)
+        ]);
 
-        const userRes = await fetch(`https://api.github.com/users/${GITHUB_USER}`);
+        const repos = (await reposRes.json()) || [];
         const user = userRes.ok ? await userRes.json() : null;
 
-        const filtered = (Array.isArray(repos) ? repos : []).filter(r=> !r.fork).sort((a,b)=> b.stargazers_count - a.stargazers_count);
-        const totalStars = filtered.reduce((s,r)=> s + (r.stargazers_count||0), 0);
-
+        // Stats
+        const filteredRepos = repos.filter(r => !r.fork).sort((a,b)=> b.stargazers_count - a.stargazers_count);
+        const totalStars = filteredRepos.reduce((s,r)=> s + (r.stargazers_count||0), 0);
         statsEl.innerHTML = `
-          <div class="flex items-center gap-4"><div class="text-sm text-slate-400">Repos</div><div class="font-semibold">${filtered.length}</div></div>
+          <div class="flex items-center gap-4"><div class="text-sm text-slate-400">Repos</div><div class="font-semibold">${filteredRepos.length}</div></div>
           <div class="flex items-center gap-4"><div class="text-sm text-slate-400">Stars</div><div class="font-semibold">${totalStars}</div></div>
           <div class="flex items-center gap-4"><div class="text-sm text-slate-400">Followers</div><div class="font-semibold">${user ? user.followers : '—'}</div></div>
         `;
 
+        // Skills: top languages
+        const langCount = {};
+        filteredRepos.forEach(r => { if(r.language) langCount[r.language] = (langCount[r.language]||0) + 1; });
+        const topLanguages = Object.entries(langCount)
+          .sort((a,b)=> b[1]-a[1])
+          .slice(0,10)
+          .map(([name,count])=> ({ name, hours: count*100 }));
+        renderSkills(topLanguages);
+
+        // Projects
         projectsGrid.innerHTML = '';
-        filtered.slice(0, 12).forEach(repo => {
+        filteredRepos.slice(0,12).forEach(repo => {
           const imgUrl = `https://opengraph.githubassets.com/1/${GITHUB_USER}/${repo.name}`;
-          const card = document.createElement('a');
+          const card = document.createElement('div');
           card.className = 'block rounded-2xl overflow-hidden shadow-lg glass-blur hover:scale-[1.02] transition-transform';
-          card.href = repo.html_url;
-          card.target = '_blank';
-          card.rel = 'noopener noreferrer';
           card.innerHTML = `
             <div class="card-media" style="background-image:url('${imgUrl}');"></div>
             <div class="p-5">
               <h3 class="text-lg font-semibold text-white mb-2">${escapeHtml(repo.name)}</h3>
               <p class="text-slate-300 text-sm mb-4">${escapeHtml(repo.description || '')}</p>
               <div class="flex flex-wrap gap-2 mb-4">
-                ${((repo.topics && repo.topics.length) ? repo.topics.map(t=>`<span class="chip inline-flex items-center rounded-full px-3 py-1 bg-white/5 text-xs text-slate-200">${escapeHtml(t)}</span>`).join('') : (repo.language?`<span class="chip inline-flex items-center rounded-full px-3 py-1 bg-white/5 text-xs text-slate-200">${escapeHtml(repo.language)}</span>`:''))}
+                ${repo.language ? `<span class="chip inline-flex items-center rounded-full px-3 py-1 bg-white/5 text-xs text-slate-200">${escapeHtml(repo.language)}</span>` : ''}
               </div>
               <div class="flex items-center justify-between text-xs text-slate-400">
                 <div class="flex items-center gap-4">
@@ -196,7 +192,7 @@
                   <div class="inline-flex items-center gap-2"><i class="fa fa-code-branch"></i> ${repo.forks_count || 0}</div>
                 </div>
                 <div class="flex items-center gap-3">
-                  <button class="px-2 py-1 rounded-md bg-white/5 text-xs">View</button>
+                  <a href="${repo.html_url}" target="_blank" class="px-2 py-1 rounded-md bg-white/5 text-xs">View</a>
                 </div>
               </div>
             </div>
@@ -204,20 +200,35 @@
           projectsGrid.appendChild(card);
         });
 
-      }catch(err){
+        // Achievements
+        achievementsGrid.innerHTML = `
+          <div class="glass-blur p-6 rounded-2xl text-center">
+            <div class="font-bold text-lg">Public Repos</div>
+            <div class="text-2xl">${user.public_repos}</div>
+          </div>
+          <div class="glass-blur p-6 rounded-2xl text-center">
+            <div class="font-bold text-lg">Followers</div>
+            <div class="text-2xl">${user.followers}</div>
+          </div>
+          <div class="glass-blur p-6 rounded-2xl text-center">
+            <div class="font-bold text-lg">Total Stars</div>
+            <div class="text-2xl">${totalStars}</div>
+          </div>
+          <div class="glass-blur p-4 rounded-2xl text-center">
+            <div class="font-bold text-lg mb-2">Contributions (Past Year)</div>
+            <img src="https://ghchart.rshah.org/${GITHUB_USER}" class="mx-auto" alt="GitHub contributions chart"/>
+          </div>
+        `;
+
+      } catch(err) {
         console.error(err);
         projectsGrid.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">Could not load GitHub data — ${escapeHtml(err.message)}</div>`;
+        achievementsGrid.innerHTML = `<div class="text-red-400">Could not load achievements</div>`;
       }
     }
 
-    function escapeHtml(str){
-      return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
-    }
-
-    renderSkills();
     fetchGitHub();
-
-    refreshBtn.addEventListener('click', ()=> fetchGitHub());
+    refreshBtn.addEventListener('click', fetchGitHub);
   </script>
 </body>
 </html>
