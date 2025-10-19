@@ -31,6 +31,9 @@
     .glass-blur:hover { transform: translateY(-2px); background: rgba(15,17,25,0.65); }
     .card-media { height:200px; background-position:center; background-size:cover; border-radius:12px 12px 0 0; }
     .chip { font-size:12px }
+    .skill-bar { width: 0; height: 100%; transition: width 1.2s ease; }
+    .fade-in { opacity: 0; transform: translateY(10px); animation: fadeInUp 1s forwards; }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
     body::before { content:''; position:fixed; inset:0; z-index:-2; background:linear-gradient(180deg,#020617 0%,#081027 50%,#020617 100%); }
     body::after { content:''; position:fixed; inset:0; z-index:-1; background-image:radial-gradient(rgba(124,92,255,0.03) 1px, transparent 1px); background-size:400px 400px; opacity:0.9; }
   </style>
@@ -91,7 +94,7 @@
       <div id="skillsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </section>
 
-    <!-- Achievements -->
+    <!-- Achievements (GitHub Badges) -->
     <section id="achievements" class="mb-16">
       <h2 class="text-3xl font-bold mb-6">Achievements</h2>
       <div id="achievementsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
@@ -107,7 +110,6 @@
     <footer class="py-8 text-sm text-slate-400 text-center">© <span id="year">2025</span> Synnrae — Built with Tailwind & GitHub API</footer>
   </div>
 
-  <!-- Scripts -->
   <script>
     const GITHUB_USER = 'synnrae';
     const projectsGrid = document.getElementById('projectsGrid');
@@ -125,17 +127,22 @@
 
     function renderSkills(skills){
       skillsGrid.innerHTML = '';
-      skills.forEach(s => {
+      skills.forEach((s, idx) => {
         const card = document.createElement('div');
-        card.className = 'glass-blur p-6 rounded-2xl flex flex-col items-start hover:scale-[1.02] transition-transform';
+        card.className = 'glass-blur p-6 rounded-2xl flex flex-col items-start hover:scale-[1.02] transition-transform fade-in';
+        card.style.animationDelay = `${idx * 0.15}s`;
         card.innerHTML = `
           <div class="text-slate-300 text-sm">${s.name}</div>
           <div class="mt-4 text-2xl font-bold text-white">${s.hours.toLocaleString()}<span class="text-sm text-slate-400"> hrs</span></div>
           <div class="mt-3 w-full bg-white/5 rounded-full h-2 overflow-hidden">
-            <div style="width:${Math.min(100, Math.round(s.hours/20))}%" class="h-2 bg-gradient-to-r from-accent to-accent2"></div>
+            <div class="skill-bar bg-gradient-to-r from-accent to-accent2"></div>
           </div>
         `;
         skillsGrid.appendChild(card);
+        setTimeout(() => {
+          const bar = card.querySelector('.skill-bar');
+          bar.style.width = `${Math.min(100, Math.round(s.hours/20))}%`;
+        }, 100);
       });
     }
 
@@ -163,28 +170,20 @@
           <div class="flex items-center gap-4"><div class="text-sm text-slate-400">Followers</div><div class="font-semibold">${user ? user.followers : '—'}</div></div>
         `;
 
-        // Skills: top languages
-        const langCount = {};
-        filteredRepos.forEach(r => { if(r.language) langCount[r.language] = (langCount[r.language]||0) + 1; });
-        const topLanguages = Object.entries(langCount)
-          .sort((a,b)=> b[1]-a[1])
-          .slice(0,10)
-          .map(([name,count])=> ({ name, hours: count*100 }));
-        renderSkills(topLanguages);
-
         // Projects
         projectsGrid.innerHTML = '';
-        filteredRepos.slice(0,12).forEach(repo => {
+        filteredRepos.slice(0,12).forEach((repo, idx)=>{
           const imgUrl = `https://opengraph.githubassets.com/1/${GITHUB_USER}/${repo.name}`;
           const card = document.createElement('div');
-          card.className = 'block rounded-2xl overflow-hidden shadow-lg glass-blur hover:scale-[1.02] transition-transform';
+          card.className = 'block rounded-2xl overflow-hidden shadow-lg glass-blur hover:scale-[1.02] transition-transform fade-in';
+          card.style.animationDelay = `${idx * 0.1}s`;
           card.innerHTML = `
             <div class="card-media" style="background-image:url('${imgUrl}');"></div>
             <div class="p-5">
               <h3 class="text-lg font-semibold text-white mb-2">${escapeHtml(repo.name)}</h3>
               <p class="text-slate-300 text-sm mb-4">${escapeHtml(repo.description || '')}</p>
               <div class="flex flex-wrap gap-2 mb-4">
-                ${repo.language ? `<span class="chip inline-flex items-center rounded-full px-3 py-1 bg-white/5 text-xs text-slate-200">${escapeHtml(repo.language)}</span>` : ''}
+                ${((repo.topics && repo.topics.length) ? repo.topics.map(t=>`<span class="chip inline-flex items-center rounded-full px-3 py-1 bg-white/5 text-xs text-slate-200">${escapeHtml(t)}</span>`).join('') : (repo.language?`<span class="chip inline-flex items-center rounded-full px-3 py-1 bg-white/5 text-xs text-slate-200">${escapeHtml(repo.language)}</span>`:''))}
               </div>
               <div class="flex items-center justify-between text-xs text-slate-400">
                 <div class="flex items-center gap-4">
@@ -200,27 +199,36 @@
           projectsGrid.appendChild(card);
         });
 
-        // Achievements
-        achievementsGrid.innerHTML = `
-          <div class="glass-blur p-6 rounded-2xl text-center">
-            <div class="font-bold text-lg">Public Repos</div>
-            <div class="text-2xl">${user.public_repos}</div>
-          </div>
-          <div class="glass-blur p-6 rounded-2xl text-center">
-            <div class="font-bold text-lg">Followers</div>
-            <div class="text-2xl">${user.followers}</div>
-          </div>
-          <div class="glass-blur p-6 rounded-2xl text-center">
-            <div class="font-bold text-lg">Total Stars</div>
-            <div class="text-2xl">${totalStars}</div>
-          </div>
-          <div class="glass-blur p-4 rounded-2xl text-center">
-            <div class="font-bold text-lg mb-2">Contributions (Past Year)</div>
-            <img src="https://ghchart.rshah.org/${GITHUB_USER}" class="mx-auto" alt="GitHub contributions chart"/>
-          </div>
-        `;
+        // Skills (example)
+        const SKILLS = [
+          { name: 'JavaScript', hours: 1200 },
+          { name: 'TypeScript', hours: 700 },
+          { name: 'React', hours: 900 },
+          { name: 'Three.js', hours: 300 },
+          { name: 'Node.js', hours: 650 },
+          { name: 'Python', hours: 800 }
+        ];
+        renderSkills(SKILLS);
 
-      } catch(err) {
+        // Achievements (GitHub Badges)
+        const badges = [
+          { name: 'Quickdraw', url: 'https://img.shields.io/badge/-Quickdraw-blue' },
+          { name: 'Starstruck', url: 'https://img.shields.io/badge/-Starstruck-yellow' },
+          { name: 'Arctic Code Vault Contributor', url: 'https://img.shields.io/badge/-Arctic%20Code%20Vault-cyan' },
+          { name: 'Mars 2020', url: 'https://img.shields.io/badge/-Mars%202020-red' }
+        ];
+        badges.forEach((badge, idx)=>{
+          const card = document.createElement('div');
+          card.className = 'glass-blur p-6 rounded-2xl text-center fade-in';
+          card.style.animationDelay = `${idx*0.1}s`;
+          card.innerHTML = `
+            <div class="font-bold mb-2">${badge.name}</div>
+            <img src="${badge.url}" class="mx-auto" alt="${badge.name} badge">
+          `;
+          achievementsGrid.appendChild(card);
+        });
+
+      } catch(err){
         console.error(err);
         projectsGrid.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">Could not load GitHub data — ${escapeHtml(err.message)}</div>`;
         achievementsGrid.innerHTML = `<div class="text-red-400">Could not load achievements</div>`;
