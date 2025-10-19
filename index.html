@@ -8,20 +8,39 @@
 <script>
 tailwind.config = { theme: { extend: { colors: { accent: '#6EE7B7', accent2:'#7c5cff', glass:'rgba(255,255,255,0.06)' } } } }
 </script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 <style>
 html{scroll-behavior:smooth;}
-body::before{content:'';position:fixed;inset:0;z-index:-2;background:linear-gradient(180deg,#020617 0%,#081027 50%,#020617 100%);}
-body::after{content:'';position:fixed;inset:0;z-index:-1;background-image:radial-gradient(rgba(124,92,255,0.03) 1px, transparent 1px);background-size:400px 400px;opacity:0.9;}
+body{font-family:'Poppins',sans-serif;}
+h1,h2,h3{font-family:'Poppins',sans-serif;}
+code, .chip{font-family:'JetBrains Mono', monospace;}
+
+body::before{
+  content:'';
+  position:fixed; inset:0; z-index:-2;
+  background:linear-gradient(180deg,#020617 0%,#081027 50%,#020617 100%);
+  animation: gradientShift 20s ease infinite alternate;
+}
+body::after{
+  content:'';
+  position:fixed; inset:0; z-index:-1;
+  background-image:radial-gradient(rgba(124,92,255,0.03) 1px, transparent 1px);
+  background-size:400px 400px;
+  opacity:0.9;
+  animation: moveDots 60s linear infinite;
+}
+
+@keyframes fadeInUp{to{opacity:1;transform:translateY(0);}}
+.fade-in{opacity:0;transform:translateY(15px);animation:fadeInUp 1s forwards;}
+@keyframes gradientShift{0%{background-position:0 0;}100%{background-position:0 100%;}}
+@keyframes moveDots{0%{background-position:0 0;}100%{background-position:400px 400px;}}
+
 .glass-blur{background:rgba(10,12,20,0.55);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.04);transition:all 0.3s ease;}
 .glass-blur:hover{transform:translateY(-3px) scale(1.02);background:rgba(15,17,25,0.65);}
 .card-media{height:200px;background-position:center;background-size:cover;border-radius:12px 12px 0 0;}
 .chip{font-size:12px;}
 .skill-bar{width:0;height:100%;transition:width 1.5s ease;}
-.fade-in{opacity:0;transform:translateY(15px);animation:fadeInUp 1s forwards;}
-@keyframes fadeInUp{to{opacity:1;transform:translateY(0);}}
-.secret{opacity:0;transition:opacity 1s;}
-.secret.active{opacity:1;}
 </style>
 </head>
 <body class="antialiased text-slate-100">
@@ -74,20 +93,15 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;background-image:radial
 
 <footer class="py-8 text-sm text-slate-400 text-center">© <span id="year">2025</span> Synnrae — the legend(cap)</footer>
 
-<!-- secret easter egg -->
-<div id="secretMessage" class="fixed bottom-8 right-8 bg-purple-800 text-white px-4 py-2 rounded shadow secret">you found the hidden easter egg 👀</div>
-
 </div>
 
 <script>
 document.getElementById('year').textContent = new Date().getFullYear();
-
 const projectsGrid = document.getElementById('projectsGrid');
 const skillsGrid = document.getElementById('skillsGrid');
 const activityGrid = document.getElementById('activityGrid');
 const statsEl = document.getElementById('stats');
 const refreshBtn = document.getElementById('refreshBtn');
-const secretEl = document.getElementById('secretMessage');
 
 // Escape HTML
 function escapeHtml(str){return String(str??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');}
@@ -126,7 +140,6 @@ function renderSkills(skills){
         <div class="skill-bar bg-gradient-to-r from-accent to-accent2" style="width:0;"></div>
       </div>`;
     skillsGrid.appendChild(card);
-    // animate bar after append
     setTimeout(()=>{card.querySelector('.skill-bar').style.width=`${widthPercent}%`;},100);
   });
 }
@@ -195,12 +208,11 @@ function initPortfolio(){
   renderProjects(hardcodedRepos);
   renderSkills(hardcodedSkills);
   renderActivity(hardcodedActivity);
-  // easter egg toggle secret
-  setTimeout(()=>{secretEl.classList.add('active');},2000);
 }
 
-refreshBtn.addEventListener('click',()=>{initPortfolio();});
+// Auto-init
 initPortfolio();
+refreshBtn.addEventListener('click',()=>{initPortfolio();});
 </script>
 </body>
 </html>
