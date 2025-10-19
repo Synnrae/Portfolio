@@ -203,6 +203,7 @@ function renderStats(){
   <div class="flex items-center gap-4"><div class="text-sm text-slate-400">Followers</div><div class="font-semibold">—</div></div>`;
 }
 
+// Init all automatically
 function initPortfolio(){
   renderStats();
   renderProjects(hardcodedRepos);
@@ -210,9 +211,9 @@ function initPortfolio(){
   renderActivity(hardcodedActivity);
 }
 
-// Auto-init
-initPortfolio();
-refreshBtn.addEventListener('click',()=>{initPortfolio();});
+// Auto load
+window.addEventListener('DOMContentLoaded',initPortfolio);
+refreshBtn.addEventListener('click',initPortfolio);
 </script>
 </body>
 </html>
